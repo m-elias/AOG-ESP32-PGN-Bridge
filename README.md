@@ -12,11 +12,6 @@ Modules-->wifi:9999->ESP32--serial->Teensy--Eth:9999->AgIO
 The firmware is in the [ESP32_SerialWifi_PGN_bridge folder](https://github.com/m-elias/AOG-AiO-RVC-100hz/tree/main/ESP32C3%20PGN%20Bridge/ESP32_SerialWifi_PGN_bridge)
 I use Arduino IDE v2.3.1, esp32 by Expressif Systems v2.0.14
 
-The pre-compiled HEX files are in the [root directory](https://github.com/m-elias/AOG-AiO-RVC-100hz)
-
-### To do:
-See the [notes](https://github.com/m-elias/AOG-AiO-RVC-100hz/blob/main/RVC_100hz_mixed/1_notes.ino)
-
 ![ESP32 on v5.0z PCB](https://github.com/m-elias/AOG-ESP32-PGN-Bridge/blob/main/media/ESP32-C3%20on%20v5.0a%20PCB.jpg)
 ![XIAO ESP32C3 pinout](https://github.com/m-elias/AOG-ESP32-PGN-Bridge/blob/main/media/Seeed-XIAO-ESP32-C3-Pinout-1.jpg)
 
