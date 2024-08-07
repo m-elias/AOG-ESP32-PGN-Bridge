@@ -2,6 +2,7 @@
 #include "IPAddress.h"
 #include "WiFi.h"
 #include "AsyncUDP.h"
+#include "esp_wifi.h"
 
 // written for XIAO ESP32-C3
 
