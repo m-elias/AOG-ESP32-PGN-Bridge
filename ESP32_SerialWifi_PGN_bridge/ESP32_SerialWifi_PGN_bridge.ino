@@ -4,7 +4,7 @@
 #include "AsyncUDP.h"
 #include "esp_wifi.h"
 
-// written for XIAO ESP32-C3
+// written for XIAO ESP32-C3/S3
 
 // *************************************************************************************
 // ******************************* USER SETTINGS/OPTIONS *******************************
@@ -49,7 +49,7 @@ void setup()
   Serial.begin(115200);
   Serial.print("\r\n*******************************************\r\nESP32 Async UDP<->Serial Forwarder/Bridge for AoG PGNs - " __DATE__ " v");
   Serial.print(ver);
-  Serial.print("\r\n - to be used on AiO v5.0a\r\n");
+  Serial.print("\r\n - to be used on AiO v5.0 Proto\r\n");
 
   // ESP32-C3 already uses 128, setRxBufferSize returns "0" if unsuccesful, otherwise returns the size of the new buffer
   uint16_t bufSize = SerialTeensy.setRxBufferSize(256);   // 128 should be plenty but why not use more
