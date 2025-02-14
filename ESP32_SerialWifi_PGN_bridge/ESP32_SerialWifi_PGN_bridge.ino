@@ -10,7 +10,7 @@
 // ******************************* USER SETTINGS/OPTIONS *******************************
 // *************************************************************************************
 // Choose one option, set Wifi details accordingly below
-#define AP      // AP for AIO v5.0 Wifi Bridge
+#define AP      // AP for AIO v5.0 Proto Wifi Bridge
 //#define STN
 
 #ifdef AP
@@ -41,14 +41,15 @@ byte SerialTeensyRX = D7;  // ESP RX pin connected to Teensy TX pin, D7 is Seria
 byte SerialTeensyTX = D6;  // ESP TX pin connected to Teensy RX pin, D6 is Serial0 default, we'll remap to Serial1 to avoid extra Serial0 debug msgs
 
 bool debug = true;
-uint8_t ver = 11;
+//uint8_t ver = 11;
 
 void setup()
 {
   delay(250);           // time for power to stabilize
   Serial.begin(115200);
-  Serial.print("\r\n*******************************************\r\nESP32 Async UDP<->Serial Forwarder/Bridge for AoG PGNs - " __DATE__ " v");
-  Serial.print(ver);
+  while (millis() < 3000 || !Serial);
+  Serial.print("\r\n*******************************************\r\nESP32 Async UDP<->Serial Forwarder/Bridge for AoG PGNs - " __DATE__ " " __TIME__);
+  //Serial.print(ver);
   Serial.print("\r\n - to be used on AiO v5.0 Proto\r\n");
 
   // ESP32-C3 already uses 128, setRxBufferSize returns "0" if unsuccesful, otherwise returns the size of the new buffer
