@@ -10,7 +10,7 @@
 // ******************************* USER SETTINGS/OPTIONS *******************************
 // *************************************************************************************
 // Choose one option, set Wifi details accordingly below
-#define AP      // AP for AIO v5.0 Proto Wifi Bridge
+#define AP      // use AP mode for AIO v5.0 Proto Wifi Bridge
 //#define STN
 
 #ifdef AP
@@ -18,14 +18,12 @@ const char* ssid = "AgOpenGPS_net";
 const char* password = "";
 IPAddress myIP = { 192, 168, 137, 1 }; // IP of ESP32 AccessPoint, default: 192.168.137.1 to match Windows Hotspot scheme
 #elif defined(STN)
-//const char* ssid = "other";
-//const char* password = "PW";
 const char* ssid = "AgOpenGPS_net";
 const char* password = "";
 IPAddress myIP = { 192, 168, 137, 79 }; // IP of ESP32 stn/client, default: 192.168.137.79 to match Windows Hotspot scheme
 #endif
 // *************************************************************************************
-// ********************************** END OF SETTINGS **********************************
+// ******************************* END OF USER SETTINGS ********************************
 // *************************************************************************************
 
 
@@ -40,19 +38,15 @@ HardwareSerial SerialTeensy(1);        // Use Serial1 to avoid Serial0's debug/b
 byte SerialTeensyRX = D7;  // ESP RX pin connected to Teensy TX pin, D7 is Serial0 default, we'll remap to Serial1 to avoid extra Serial0 debug msgs
 byte SerialTeensyTX = D6;  // ESP TX pin connected to Teensy RX pin, D6 is Serial0 default, we'll remap to Serial1 to avoid extra Serial0 debug msgs
 
-bool debug = true;
-//uint8_t ver = 11;
-
 void setup()
 {
-  delay(250);           // time for power to stabilize
+  delay(500);           // time for ESP32 power to stabilize
   Serial.begin(115200);
   while (millis() < 3000 || !Serial);
   Serial.print("\r\n*******************************************\r\nESP32 Async UDP<->Serial Forwarder/Bridge for AoG PGNs - " __DATE__ " " __TIME__);
-  //Serial.print(ver);
   Serial.print("\r\n - to be used on AiO v5.0 Proto\r\n");
 
-  // ESP32-C3 already uses 128, setRxBufferSize returns "0" if unsuccesful, otherwise returns the size of the new buffer
+  // ESP32-C3 default is 128, setRxBufferSize returns "0" if unsuccessful, otherwise returns the size of the new buffer
   uint16_t bufSize = SerialTeensy.setRxBufferSize(256);   // 128 should be plenty but why not use more
   Serial.print((String)"\r\nSerialTeensy RX buffer size: " + (bufSize == 0 ? 128 : bufSize));
 
@@ -81,12 +75,16 @@ void loop()
   }
   #endif
 
-  // AgIO--ethernet:8888-->Teensy--serial-->ESP32--wifi:8888-->Modules
+  // AgIO--UDP:8888-->Teensy
+  //     Teensy--serial-->ESP32
+  //          ESP32--wifi:8888-->Modules
   if (SerialTeensy.available())
   {
+
+    // Read serial bytes one at a time into buffer
     static uint8_t incomingBytes[50];
     static uint8_t incomingIndex;
-    incomingBytes[incomingIndex++] = SerialTeensy.read();
+    incomingBytes[incomingIndex++] = SerialTeensy.read();   // advance index counter after storing new serial byte
     /*Serial.print("\r\nindex: "); Serial.print(incomingIndex);
     Serial.print(" ");
     for (byte i = 0; i < incomingIndex; i++) {
@@ -94,14 +92,16 @@ void loop()
       Serial.print(" ");
     }*/
 
+    // Check for End-Of-PGN bytes [CR] [LF]
     if (incomingBytes[incomingIndex - 2] == 13 && incomingBytes[incomingIndex - 1] == 10)
     {
+      // Verify the first two bytes are AOG PGN header bytes
       if (incomingBytes[0] == 128 && incomingBytes[1] == 129)
       {
         // ESP32--wifi:8888->Modules
         UDPforModules.writeTo(incomingBytes, incomingIndex - 2, udpSendIP, udpSendPort);  // repeat AOG:8888 PGNs from Teensy(AgIO) to WiFi modules
 
-        //pass data to USB for debug
+        // Pass data to USB for debug
         Serial.print("\r\nT41-s->E32-w:8888->Modules ");
         for (byte i = 0; i < incomingIndex - 2; i++) {
           Serial.print(incomingBytes[i]);
@@ -109,7 +109,7 @@ void loop()
         }
         Serial.print((String)" (" + SerialTeensy.available() + ")");  // usually 0 except with high data volume at low baud
       } else {
-        Serial.print("\r\n\nCR/LF detected but [0]/[1] bytes != 128/129\r\n");
+        Serial.print("\r\n\nCR/LF detected but NOT valid PGN ([0]/[1] bytes != 128/129)\r\n");
       }
       incomingIndex = 0;  // "reset" buffer
     }
