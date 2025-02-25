@@ -41,6 +41,7 @@ byte SerialTeensyTX = D6;  // ESP TX pin connected to Teensy RX pin, D6 is Seria
 void setup()
 {
   delay(500);           // time for ESP32 power to stabilize
+  pinMode(D8, OUTPUT);
   Serial.begin(115200);
   while (millis() < 3000 && !Serial);
   Serial.print("\r\n*******************************************\r\nESP32 Async UDP<->Serial Forwarder/Bridge for AoG PGNs - " __DATE__ " " __TIME__);
@@ -52,7 +53,7 @@ void setup()
 
   setupWifi();
   setupUDP();
-  Serial.print("\r\n\nSetup complete\r\n*******************************************\r\n\n\n\n\n");
+  Serial.print("\r\n\nSetup complete\r\n*******************************************\r\n\n");
 
   SerialTeensy.begin(460800, SERIAL_8N1, SerialTeensyRX, SerialTeensyTX);
   delay(50);
@@ -73,7 +74,39 @@ void loop()
     Serial.println(WiFi.softAPgetStationNum());
     numStns = WiFi.softAPgetStationNum();
   }
+
+  // send AP WiFi telem to Teensy for displaying in Web UI
+  static uint32_t lastHelloTime = 0;
+  if ( (millis() - lastHelloTime) > 5000 ) {
+    lastHelloTime = millis();
+    uint8_t helloFromESP32[] = { 0x80, 0x81, 90, 90, 5, 0, 0, 0, 0, 0, 71 };
+
+    union {   // both variables in the union share the same memory space
+      byte array[4];
+      uint32_t millis;
+    } runtime;
+    runtime.millis = millis();
+
+    helloFromESP32[5] = runtime.array[0];
+    helloFromESP32[6] = runtime.array[1];
+    helloFromESP32[7] = runtime.array[2];
+    helloFromESP32[8] = runtime.array[3];
+    helloFromESP32[9] = numStns;
+
+    SerialTeensy.write(helloFromESP32, sizeof(helloFromESP32));
+    SerialTeensy.println();  // to signal end of PGN
+  }
+
   #endif
+
+
+  static uint32_t lastLEDTime = 0;
+  static bool ledOn = true;
+  if ( (millis() - lastLEDTime) > 500 ) {
+    lastLEDTime = millis();
+    digitalWrite(D8, ledOn);
+    ledOn = !ledOn;
+  }
 
   // AgIO--UDP:8888-->Teensy
   //     Teensy--serial-->ESP32
