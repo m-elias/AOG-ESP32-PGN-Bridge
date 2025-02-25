@@ -75,7 +75,7 @@ void loop()
     numStns = WiFi.softAPgetStationNum();
   }
 
-  // send AP WiFi telem to Teensy for displaying in Web UI
+  // send ESP32 telem to Teensy for displaying in Web UI
   static uint32_t lastHelloTime = 0;
   if ( (millis() - lastHelloTime) > 5000 ) {
     lastHelloTime = millis();
@@ -94,6 +94,30 @@ void loop()
     helloFromESP32[9] = numStns;
 
     SerialTeensy.write(helloFromESP32, sizeof(helloFromESP32));
+    SerialTeensy.println();  // to signal end of PGN
+
+    // send ESP32 WiFi creds to Teensy for displaying in Web UI
+    uint8_t wifiCredsPGN[54]; // 4 header bytes, 1 length, 24 ssid, 24 pw, 1 crc
+    wifiCredsPGN[0] = 0x80;
+    wifiCredsPGN[1] = 0x81;
+    wifiCredsPGN[2] = 91;
+    wifiCredsPGN[3] = 91;
+    wifiCredsPGN[4] = 48; // payload length
+
+    bool ssidEOL = 0;
+    bool pwEOL = 0;
+    for (uint8_t i = 0; i < 24; i++){
+      if (ssid[i] == 0) ssidEOL = 1;
+      if (!ssidEOL) wifiCredsPGN[i+5] = (byte)ssid[i];
+      else wifiCredsPGN[i+5] = 0;
+      //Serial.printf("%i(%i):", ssid[i], wifiCredsPGN[i+5]);
+
+      if (password[i] == 0) pwEOL = 1;
+      if (!pwEOL) wifiCredsPGN[i+5+24] = (byte)password[i];
+      else wifiCredsPGN[i+5+24] = 0;
+    }
+
+    SerialTeensy.write(wifiCredsPGN, sizeof(wifiCredsPGN));
     SerialTeensy.println();  // to signal end of PGN
   }
 
