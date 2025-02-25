@@ -42,7 +42,7 @@ void setup()
 {
   delay(500);           // time for ESP32 power to stabilize
   Serial.begin(115200);
-  while (millis() < 3000 || !Serial);
+  while (millis() < 3000 && !Serial);
   Serial.print("\r\n*******************************************\r\nESP32 Async UDP<->Serial Forwarder/Bridge for AoG PGNs - " __DATE__ " " __TIME__);
   Serial.print("\r\n - to be used on AiO v5.0 Proto\r\n");
 
