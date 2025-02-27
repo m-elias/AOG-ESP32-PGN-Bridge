@@ -79,7 +79,7 @@ void loop()
   static uint32_t lastHelloTime = 0;
   if ( (millis() - lastHelloTime) > 5000 ) {
     lastHelloTime = millis();
-    uint8_t helloFromESP32[] = { 0x80, 0x81, 90, 90, 5, 0, 0, 0, 0, 0, 71 };
+    uint8_t helloFromESP32[] = { 0x80, 0x81, 90, 90, 6, 0, 0, 0, 0, 1, 234, 11, 71 };  // 71 CRC not checked, just placeholder
 
     union {   // both variables in the union share the same memory space
       byte array[4];
@@ -92,6 +92,8 @@ void loop()
     helloFromESP32[7] = runtime.array[2];
     helloFromESP32[8] = runtime.array[3];
     helloFromESP32[9] = numStns;
+    //helloFromESP32[10] = moduleToModulePortLowByte;
+    //helloFromESP32[11] = moduleToModulePortHighByte;
 
     SerialTeensy.write(helloFromESP32, sizeof(helloFromESP32));
     SerialTeensy.println();  // to signal end of PGN
